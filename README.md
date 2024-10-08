@@ -2,9 +2,10 @@
 
 A quick experiment and benchmark to try get the raw RGBA pixels of a PNG using:
 
-1. Rust and `wasm-bindgen`  
-1. WebGL2 API
-1. `OffscreenCanvas`
-1. npm `canvas` package
+1. compiling Rust into `wasm-bindgen`  
+1. with WebGL2 API
+1. using `OffscreenCanvas`
+1. a cairo backend on node, npm- `canvas`
+1. pure JS implementation, npm- `pngjs`
 
 
