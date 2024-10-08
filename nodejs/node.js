@@ -1,51 +1,57 @@
 import { createCanvas, loadImage } from "canvas";
-
+import fs from 'fs'
 import { decode_img_from_arraybuffer } from './pkg/load_image_bytes_with_rust_and_web_assembly_and_no_canvas.js'
+import { PNG } from 'pngjs'
 
+const NUM_IMAGES = 9;
 
-const urls = ['/images/tiny.png', '/images/small.png', '/images/medium.png', '/images/large.png',];
-
-const functions = [getImageDataUsingWebAssembly, getImageDataUsingNode];
+const functions = [getImageDataUsingWebAssembly, getImageDataUsingNode, getImageDataUsingPngjs];
 
 async function bench(fn, url) {
 	let start = performance.now();
 
-	let res = await fn('http://localhost:8080' + url, start)
+	let res = await fn(url, start)
 
-	console.log(fn.name, url, performance.now() - start)
+	const timeTaken = performance.now() - start;
+
+	console.log(`  ${fn.name} ${url} ${timeTaken}`)
+
+	return timeTaken
 }
 
 
-async function run(functions, urls) {
+
+async function run(functions, num_images) {
+
 	for (const _function of functions) {
-		console.log("--", _function.name)
-		for (const url of urls) {
-			await bench(_function, url)
+		console.log(`Benchmarking ${_function.name}`);
+
+		let totalTime = 0;
+
+		for (let i = 1; i <= num_images; i++) {
+			const fileName = `./images/${i}.png`;
+			totalTime += await bench(_function, fileName)
 		}
+
+
+		console.log(`Total time for ${_function.name} is ${totalTime}`)
 	}
 }
 
-run(functions, urls);
+run(functions, NUM_IMAGES);
 
-async function getImageDataUsingWebAssembly(url, start) {
-	//	const wasm = await init({});
+async function getImageDataUsingWebAssembly(fileName) {
 
-	const response = await fetch(url);
 
-	const blob = await response.blob();
-
-	// const bitmap = await createImageBitmap(blob, { colorSpaceConversion: 'none' });
-
-	const arrayBuffer = await blob.arrayBuffer();
-
-	const data = await decode_img_from_arraybuffer(arrayBuffer);
+	const arrayBuffer = fs.readFileSync(fileName, { encoding: null });
+	const data = await decode_img_from_arraybuffer(arrayBuffer.buffer);
 
 	return data
 }
 
 
-async function getImageDataUsingNode(url) {
-	const img = await loadImage(url);
+async function getImageDataUsingNode(fileName) {
+	const img = await loadImage(fileName);
 
 	const canvas = createCanvas(img.width, img.height);
 
@@ -58,5 +64,11 @@ async function getImageDataUsingNode(url) {
 	return imageData.data
 }
 
+async function getImageDataUsingPngjs(fileName) {
+	const data = fs.readFileSync(fileName);
 
+	const png = PNG.sync.read(data);
+
+	return png.data
+}
 

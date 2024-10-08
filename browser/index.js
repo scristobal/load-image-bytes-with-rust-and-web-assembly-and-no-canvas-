@@ -1,31 +1,46 @@
 import init, { decode_img_from_arraybuffer, decode_img_from_url } from './pkg/load_image_bytes_with_rust_and_web_assembly_and_no_canvas.js'
 
-const urls = ['/images/tiny.png', '/images/small.png', '/images/medium.png', '/images/large.png',];
+const NUM_IMAGES = 9;
 
-const functions = [getImageDataUsingWebAssembly, getImageDataUsingWebgl, getImageDataUsingOfflineCanvas];
+const functions = [getImageDataUsingWebAssembly, getImageDataUsingWebgl, getImageDataUsingOfflineCanvas, decode_img_from_url];
 
 async function bench(fn, url) {
 	let start = performance.now();
 
 	let res = await fn(url, start)
 
-	console.log(fn.name, url, performance.now() - start)
+	const timeTaken = performance.now() - start;
+
+	console.log(`  ${fn.name} ${url} ${timeTaken}`)
+
+	return timeTaken
 }
 
 
-async function run(functions, urls) {
+async function run(functions, num_images) {
+
+
 	for (const _function of functions) {
-		console.log("--", _function.name)
-		for (const url of urls) {
-			await bench(_function, url)
+		console.log(`Benchmarking ${_function.name}`);
+
+		let totalTime = 0;
+
+		for (let i = 1; i <= num_images; i++) {
+			const url = `/images/${i}.png`
+			totalTime += await bench(_function, url)
 		}
+
+
+		console.log(`Total time for ${_function.name} is ${totalTime}`)
 	}
 }
 
-run(functions, urls);
+run(functions, NUM_IMAGES);
 
 
-async function getImageDataUsingWebAssembly(url, start) {
+
+
+async function getImageDataUsingWebAssembly(url) {
 	const wasm = await init({});
 
 	const response = await fetch(url);
@@ -38,10 +53,10 @@ async function getImageDataUsingWebAssembly(url, start) {
 
 	const data = await decode_img_from_arraybuffer(arrayBuffer);
 
-	return new ImageData(data, bitmap.width, bitmap.height);
+	return data
 }
 
-async function getImageDataUsingOfflineCanvas(url, start) {
+async function getImageDataUsingOfflineCanvas(url) {
 
 	const response = await fetch(url);
 
@@ -59,11 +74,11 @@ async function getImageDataUsingOfflineCanvas(url, start) {
 
 	const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
 
-	return imageData
+	return imageData.data
 }
 
 
-async function getImageDataUsingWebgl(url, start) {
+async function getImageDataUsingWebgl(url) {
 
 	const response = await fetch(url);
 
@@ -100,6 +115,6 @@ async function getImageDataUsingWebgl(url, start) {
 
 	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-	return new ImageData(data, bitmap.width, bitmap.height);
+	return data
 }
 

@@ -1,8 +1,8 @@
-build: 
-	cd wasm-source && cargo build --target=wasm32-unknown-unknown
+build *args: 
+	cd wasm-source && cargo build --target=wasm32-unknown-unknown {{ args }}
 
 pack *args:
-	cd wasm-source &&  wasm-bindgen ./target/wasm32-unknown-unknown/debug/load_image_bytes_with_rust_and_web_assembly_and_no_canvas.wasm {{ args }}
+	cd wasm-source &&  wasm-bindgen ./target/wasm32-unknown-unknown/release/load_image_bytes_with_rust_and_web_assembly_and_no_canvas.wasm {{ args }}
 
 pack-browser:
 	@just pack --out-dir ../browser/pkg --target web
