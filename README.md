@@ -1,6 +1,6 @@
 # Load ImageData with Rust and Web Assembly (no canvas involved)
 
-A quick experiment and benchmark to try get the raw RGBA pixels of a PNG using:
+A quick experiment to get raw pixels of a PNG using:
 
 1. compiling Rust into `wasm-bindgen`  
 1. with WebGL2 API
