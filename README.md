@@ -1,4 +1,4 @@
-# Load ImageData with Rust and Web Assembly and no canvas involved
+# Load ImageData with Rust and Web Assembly (no canvas involved)
 
 A quick experiment and benchmark to try get the raw RGBA pixels of a PNG using:
 
